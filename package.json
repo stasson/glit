@@ -1,0 +1,65 @@
+{
+  "name": "glit",
+  "version": "0.0.0",
+  "author": {
+    "name": "stasson",
+    "email": "sebastien.tasson@gmail.com"
+  },
+  "bin": "bin/glit.js",
+  "main": "lib/index",
+  "types": "lib/index",
+  "files": [
+    "lib",
+    "bin"
+  ],
+  "scripts": {
+    "prepack": "tsc",
+    "clean": "rimraf lib",
+    "_prepack": "jest",
+    "_test": "jest",
+    "release": "standard-version",
+    "commit": "standard-commit"
+  },
+  "gitHooks": {
+    "commit-msg": "standard-commithook"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/fs-extra": "^8.0.0",
+    "@types/jest": "^24.0.18",
+    "@types/js-yaml": "^3.12.1",
+    "@types/node": "^10.14.16",
+    "jest": "^24.9.0",
+    "rimraf": "^3.0.0",
+    "standard-commit": "^3.0.2",
+    "standard-version": "^7.0.0",
+    "ts-jest": "^24.0.2",
+    "type-fest": "^0.7.1",
+    "typescript": "^3.5.3",
+    "yorkie": "^2.0.0"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.14.138",
+    "cac": "^6.5.2",
+    "chalk": "^2.4.2",
+    "execa": "^2.0.4",
+    "fs-extra": "^8.1.0",
+    "gitlab": "^11.0.0",
+    "joycon": "^2.2.5",
+    "js-yaml": "^3.13.1",
+    "lodash": "^4.17.15",
+    "log-symbols": "^3.0.0",
+    "loud-rejection": "^2.1.0",
+    "read-pkg": "^5.2.0",
+    "simple-git": "^1.124.0",
+    "upath": "^1.1.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stasson/glit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stasson/glit/issues"
+  },
+  "homepage": "https://github.com/stasson/glit#readme"
+}
