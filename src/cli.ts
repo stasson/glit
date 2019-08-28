@@ -12,13 +12,13 @@ prog
 prog
   .command('mr', 'create a merge request')
   .option('-p, --project <project>', 'project id or url')
-  .option('--src <branch>', 'the source branch')
-  .option('--dest <branch>', 'the destination branch')
+  .option('--source <branch>', 'the source branch')
+  .option('--target <branch>', 'the target branch')
   .option('--title <title>', 'the destination branch')
   .action(async (options: any) => {
     options = await normalizeOptions(options)
-    const { token, host, project, src, dest, title } = options
-    logger.debug('mergeRequest:', { host, token, project, src, dest })
+    const { token, host, project, source, target, title } = options
+    logger.debug('mergeRequest:', { host, token, project, source, target, title })
     return mergeRequest(options)
   })
 

@@ -6,6 +6,7 @@ export type GlitOptions = Partial<{
   token: string
   ci: boolean
   project: string
+  branch: string
 }>
 
 export async function normalizeOptions(options: any) {
