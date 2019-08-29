@@ -10,13 +10,16 @@ prog
   .option('--ci', 'run in ci env')
 
 prog
-  .command('mr', 'create a merge request')
-  .option('-p, --project <project>', 'project id or url')
+  .command('mr', 'create or update a merge request')
+  .option('-p, --project <project>', 'project id')
   .option('--source <branch>', 'the source branch')
   .option('--target <branch>', 'the target branch')
   .option('--title <title>', 'the destination branch')
+  .option('--label <label>', 'some label')
   .action(async (options: any) => {
     options = await normalizeOptions(options)
+    
+
     const { token, host, project, source, target, title } = options
     logger.debug('mergeRequest:', { host, token, project, source, target, title })
     return mergeRequest(options)

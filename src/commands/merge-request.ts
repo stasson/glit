@@ -1,5 +1,5 @@
 // import git from 'simple-git/promise'
-import { Gitlab } from 'gitlab'
+import { Gitlab, Labels } from 'gitlab'
 import { GlitOptions } from '../options'
 import { logger } from '../logger'
 import yaml from 'js-yaml'
@@ -10,6 +10,7 @@ export type MergeRequestOptions = GlitOptions &
     source: string
     target: string
     title: string
+    label: string | string[]
   }>
 
 type MR = {
@@ -21,6 +22,7 @@ type MR = {
   targetBranch: string
   sourceBranch: string
   webUrl: string
+  labels: string[]
 }
 
 export async function mergeRequest(options: MergeRequestOptions) {
@@ -31,13 +33,25 @@ export async function mergeRequest(options: MergeRequestOptions) {
     camelize: true
   })
 
-  if (!options.project) throw Error('project is required')
   let projectId = options.project
-  const project = (await Projects.show(projectId)) as { defaultBranch: string }
-  const { defaultBranch } = project
-  const targetBranch = options.target || defaultBranch
-  const sourceBranch = options.source
-  if (!sourceBranch) throw Error('source branch is required')
+  let targetBranch = options.target
+  let sourceBranch = options.source
+  let title = options.title
+  let labels =
+    typeof options.label == 'string' 
+      ? options.label.split(/[, ]/).map(x => x.trim())
+      : options.label
+
+  if (!sourceBranch) throw Error('source is required')
+  if (!projectId) throw Error('project is required')
+
+  if (!targetBranch) {
+    const project = (await Projects.show(projectId)) as {
+      defaultBranch: string
+    }
+    const { defaultBranch } = project
+    targetBranch = defaultBranch
+  }
 
   const mergeRequests = (await MergeRequests.all({ projectId })) as MR[]
   let mr = mergeRequests.find(
@@ -47,7 +61,6 @@ export async function mergeRequest(options: MergeRequestOptions) {
       x.targetBranch == targetBranch
   )
   if (!mr) {
-    let title = options.title
     if (!title) {
       const branch = (await Branches.show(projectId, sourceBranch)) as {
         title: string
@@ -55,21 +68,37 @@ export async function mergeRequest(options: MergeRequestOptions) {
       title = branch.title
     }
 
+    // create
     mr = (await MergeRequests.create(
       projectId,
       sourceBranch,
       targetBranch,
-      title
+      title,
+      {
+        labels: labels && labels.join(','),
+        remove_source_branch: true
+      }
     )) as MR
+  } else {
+    // update
+    if (labels) {
+      await MergeRequests.edit(projectId, mr.iid, {
+        labels: labels && labels.join(','),
+        remove_source_branch: true,
+      })
+      mr = (await MergeRequests.show(projectId, mr.iid)) as MR
+    }
   }
-
   dumpMergeRequests(mr)
 }
 
 function dumpMergeRequests(mr: MR) {
-  const { title, description, targetBranch, sourceBranch, webUrl } = mr
+  const { title, description, targetBranch, sourceBranch, webUrl, labels: labels } = mr
   logger.success(webUrl)
   logger.log(
-    yaml.dump(pickBy({ title, description, sourceBranch, targetBranch }))
+    yaml.dump(pickBy({ title, description, sourceBranch, targetBranch, labels: labels.join(', ') }), {
+      condenseFlow: true,
+      flowLevel:2
+    })
   )
 }
