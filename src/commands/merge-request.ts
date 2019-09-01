@@ -46,7 +46,8 @@ export async function mergeRequest(options: MergeRequestOptions) {
     logger.debug({host, version, revision})
   }
   catch (err) {
-    throw  Error(`unable to connect to server: ${host}`)
+    const msg = err.description || err.toString() 
+    throw  Error(`unable to connect to server: ${host}, ${msg}`)
   }
 
   let projectId = options.project
