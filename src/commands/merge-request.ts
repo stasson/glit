@@ -10,6 +10,7 @@ export type MergeRequestOptions = GlitOptions &
     source: string
     target: string
     title: string
+    description: string
     label: string | string[]
   }>
 
@@ -38,6 +39,7 @@ export async function mergeRequest(options: MergeRequestOptions) {
   let targetBranch = options.target
   let sourceBranch = options.source
   let title = options.title
+  let description = options.description
   let labels =
     typeof options.label == 'string'
       ? options.label.split(/[, ]/).map(x => x.trim())
@@ -45,7 +47,6 @@ export async function mergeRequest(options: MergeRequestOptions) {
 
   if (!projectId) throw Error('project is required')
   if (!sourceBranch) throw Error('source is required')
-
   let project
   try {
     project = (await Projects.show(projectId)) as { id: number }
@@ -54,13 +55,13 @@ export async function mergeRequest(options: MergeRequestOptions) {
     try {
       const projectPath = projectId
       const projectName = projectPath.split('/')[-1]
-
-      project = ((await Projects.search(projectName)) as {
+      const matching  = ((await Projects.search(projectName)) as {
         id: number
         name: string
         path: string
         pathWithNamespace: string
-      }[]).find(p => {
+      }[])
+      project= matching.find(p => {
         p.pathWithNamespace == projectPath
       })
       if (project) {
@@ -81,6 +82,7 @@ export async function mergeRequest(options: MergeRequestOptions) {
     targetBranch = defaultBranch
   }
 
+
   const mergeRequests = (await MergeRequests.all({ projectId })) as MR[]
   let mr = mergeRequests.find(
     x =>
@@ -91,10 +93,23 @@ export async function mergeRequest(options: MergeRequestOptions) {
   if (!mr) {
     if (!title) {
       const branch = (await Branches.show(projectId, sourceBranch)) as {
-        title: string
+        name: string
+        commit: {
+          id: string,
+          short_id: string
+          title: string
+          message: string
+        }
       }
-      title = branch.title
+      title = branch.commit.title  
+      
+      if (!description) {
+        description = branch.commit.message.split('\n').splice(1).join('\n')
+      }
+
     }
+    
+    if (!title) throw Error('missing title')
 
     // create
     mr = (await MergeRequests.create(
@@ -103,6 +118,7 @@ export async function mergeRequest(options: MergeRequestOptions) {
       targetBranch,
       title,
       {
+        description,
         labels: labels && labels.join(','),
         remove_source_branch: true
       }
@@ -111,12 +127,13 @@ export async function mergeRequest(options: MergeRequestOptions) {
     // update
     if (labels) {
       await MergeRequests.edit(projectId, mr.iid, {
+        description,
         labels: labels && labels.join(','),
         remove_source_branch: true
       })
-      mr = (await MergeRequests.show(projectId, mr.iid)) as MR
     }
   }
+  mr = (await MergeRequests.show(projectId, mr.iid)) as MR
   dumpMergeRequests(mr)
 }
 

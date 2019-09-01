@@ -14,7 +14,8 @@ prog
   .option('-p, --project <project>', 'project id or path')
   .option('--source <branch>', 'the source branch')
   .option('--target <branch>', 'the target branch')
-  .option('--title <title>', 'the destination branch')
+  .option('--title <title>', 'the mr title')
+  .option('--description <description>', 'the mr description')
   .option('--label <label>', 'some label')
   .action(async (options: any) => {
     options = await normalizeOptions(options)
