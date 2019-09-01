@@ -1,5 +1,5 @@
 // import git from 'simple-git/promise'
-import { ProjectsBundle as Gitlab } from 'gitlab'
+import { Gitlab } from 'gitlab'
 import { GlitOptions } from '../options'
 import { logger } from '../logger'
 import yaml from 'js-yaml'
@@ -27,16 +27,27 @@ type MR = {
 }
 
 export async function mergeRequest(options: MergeRequestOptions) {
-  const { host, token } = options
-  if (!token) throw Error('invalid token')
-  if (!host) throw Error('invalid host')
+  let { host, token } = options
+  if (!token) throw Error('missing token')
+  if (!host) throw Error('missing host')
+  if (!host.startsWith('https://')) {
+    host = `https://${host}`
+  }
 
-  const { Projects, MergeRequests, Branches } = new Gitlab({
+  const { Projects, MergeRequests, Branches, Version  } = new Gitlab({
     host,
     token,
     camelize: true,
     requestTimeout: 3000
   })
+
+  try {
+    const {version, revision} = (await Version.show()) as any
+    logger.debug({host, version, revision})
+  }
+  catch (err) {
+    throw  Error(`unable to connect to server: ${host}`)
+  }
 
   let projectId = options.project
   let targetBranch = options.target
