@@ -19,5 +19,6 @@ export default async function(argv?: string[]) {
       logger.error(`unkown command ${args[0]}`)
     }
     cli.outputHelp()
+    process.exitCode = 1
   }
 }
