@@ -28,6 +28,9 @@ type MR = {
 
 export async function mergeRequest(options: MergeRequestOptions) {
   const { host, token } = options
+  if (!token) throw Error('invalid token')
+  if (!host) throw Error('invalid host')
+
   const { Projects, MergeRequests, Branches } = new Gitlab({
     host,
     token,
@@ -55,13 +58,13 @@ export async function mergeRequest(options: MergeRequestOptions) {
     try {
       const projectPath = projectId
       const projectName = projectPath.split('/')[-1]
-      const matching  = ((await Projects.search(projectName)) as {
+      const matching = (await Projects.search(projectName)) as {
         id: number
         name: string
         path: string
         pathWithNamespace: string
-      }[])
-      project= matching.find(p => {
+      }[]
+      project = matching.find(p => {
         p.pathWithNamespace == projectPath
       })
       if (project) {
@@ -82,7 +85,6 @@ export async function mergeRequest(options: MergeRequestOptions) {
     targetBranch = defaultBranch
   }
 
-
   const mergeRequests = (await MergeRequests.all({ projectId })) as MR[]
   let mr = mergeRequests.find(
     x =>
@@ -95,20 +97,22 @@ export async function mergeRequest(options: MergeRequestOptions) {
       const branch = (await Branches.show(projectId, sourceBranch)) as {
         name: string
         commit: {
-          id: string,
+          id: string
           short_id: string
           title: string
           message: string
         }
       }
-      title = branch.commit.title  
-      
-      if (!description) {
-        description = branch.commit.message.split('\n').splice(1).join('\n')
-      }
+      title = branch.commit.title
 
+      if (!description) {
+        description = branch.commit.message
+          .split('\n')
+          .splice(1)
+          .join('\n')
+      }
     }
-    
+
     if (!title) throw Error('missing title')
 
     // create
