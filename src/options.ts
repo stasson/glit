@@ -10,13 +10,13 @@ export type GlitOptions = Partial<{
 }>
 
 export async function normalizeOptions(options: any) {
-  const { CI, CI_SERVER_HOST, CI_API_TOKEN, CI_PROJECT_ID } = process.env
+  const { CI, CI_SERVER_HOST, CI_API_TOKEN, CI_ACCESS_TOKEN, CI_PROJECT_ID } = process.env
 
   const config = await loadConfig()
   const env = {
     ci: !!CI,
     host: CI_SERVER_HOST,
-    token: CI_API_TOKEN,
+    token: CI_API_TOKEN || CI_ACCESS_TOKEN,
     project: CI_PROJECT_ID
   }
 
