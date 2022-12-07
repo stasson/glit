@@ -51,7 +51,7 @@
     "log-symbols": "^3.0.0",
     "loud-rejection": "^2.1.0",
     "read-pkg": "^5.2.0",
-    "simple-git": "^1.124.0",
+    "simple-git": "^3.15.0",
     "upath": "^1.1.2"
   },
   "repository": {
